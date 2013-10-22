@@ -9,20 +9,52 @@ from zh_node_default_renderer import ZNodeDefaultRenderer
 
 #NOTE: Do we need provide a method to set template name at runtime?
 class ZNode(object):
-  template_ = ''
+  template = ''
   # eg. Seajs module path, this give info to client to load it's script, before create the node.
   # the script and it's childs's script will be batch fetched at once.
+  # Should be assign by subclass.
+  constructor_name = ''
   js_path = ''
   css_path = ''
   meta = {}
-  root_node_id = None
+  # End for assign.
+  client_id = ''
   child_nodes = []
+  root_node_id = 'ROOT'
+  infor_map = None
+  context = None
+  is_root = False
   
-  def __init__(self, meta = {}, root_node_id = None, entity_context = None):
+  def __init__(self, meta = {}, parent_node = None):
     self.view_data = {}
-    self.template = self.template_
     # self.config = config 
     self.meta = meta
+
+    if parent_node:
+      self.root_node_id = parent_node.root_node_id
+      self.set_infor_map(parent_node.infor_map)
+      self.set_context(parent_node.context)
+    else:
+      self.marked_as_root_node()
+
+  def set_infor_map(self, infor_map):
+    self.infor_map = infor_map
+    if not self.client_id:
+      self.set_client_id(self.infor_map.generate_client_id())
+      if self.is_root:
+        self.root_node_id = self.get_client_id()
+        self.infor_map.add_relationship('ROOT', self)
+
+      self.infor_map.add_tree_dependency(self.root_node_id, self.js_path)
+
+  def set_context(self, context):
+    self.entity_context = context
+
+  def marked_as_root_node(self):
+    self.is_root = True
+
+  def get_constructor_name(self):
+    return self.constructor_name
     
   #NOTE: Should set by ClientInfoMap.  
   def set_client_id(self, client_id):
@@ -33,7 +65,9 @@ class ZNode(object):
 
   
   def add_child(self, child_node):
-    child_node.set_parent(self)
+    # We don't need a pointer to parent node.
+    #child_node.set_parent(self)
+    self.infor_map.add_relationship(parent_node = self, child_node = child_node)
     self.child_nodes.append(child_node)
     
   def get_view_data_item(self, key):
@@ -93,13 +127,13 @@ class ZNode(object):
     # ]  
     pass  
 
-  def get_renderer(self):
-    return ZNodeDefaultRenderer(self.template, self.view_data)
+  def get_renderer(self, template = '', view_data = None):
+    return ZNodeDefaultRenderer(template, view_data)
       
   def render(self):
     self.fetch_data()
     self.set_view_data_item('node_attribute', self.node_attribute)
-    renderer = self.get_renderer(self.template, self.view_data)
+    renderer = self.get_renderer(template = self.template, view_data = self.view_data)
     return renderer.render()
     
     

@@ -14,6 +14,8 @@ class ZNodeDefaultRenderer(object):
 	view_data = {}
 	def __init__(self, template = '', view_data = {}):
 		super(ZNodeDefaultRenderer, self).__init__()
+		self.template = template
+		self.view_data = view_data
 
 	def render(self):
 		return 'Implement your own template renderer is required.'
