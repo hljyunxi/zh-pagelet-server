@@ -1,1 +1,12 @@
-.pyc
+_Store
+*.pyc
+*.pyo
+*.orig
+*.swp
+*.pid
+*.sqlite3
+*.sup
+*.bak
+*.tmproj
+vendor
+.DS_Store
