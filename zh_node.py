@@ -37,6 +37,9 @@ class ZNode(object):
     else:
       self.marked_as_root_node()
 
+  def get_css_path(self):
+    return self.css_path
+
   def set_infor_map(self, infor_map):
     self.infor_map = infor_map
     if not self.client_id:
@@ -52,6 +55,9 @@ class ZNode(object):
 
   def marked_as_root_node(self):
     self.is_root = True
+
+  def get_module_name(self):
+    return self.js_path
 
   def get_constructor_name(self):
     return self.constructor_name
@@ -100,13 +106,16 @@ class ZNode(object):
   # def get_config(self, key):
   #   return self.config[key]
   
-  def node_attribute(self):
+  def get_node_attribute(self):
     meta_data = self.meta
     # m = '&'.join(['{0}={1}'.format(k, str(meta_data[k]).replace('=', '○').replace('&', '⊕')) for k in meta_data ])
     # m = '&'.join(['{0}={1}'.format(k, str(meta_data[k]).replace('=', u'○').replace('&', u'⊕')) for k in meta_data ])
     m = json.dumps(meta_data)
     
-    return ' id="{0}" data-meta=\'{1}\''.format(self.get_client_id(), m)
+    return {
+      'id': self.get_client_id(),
+      'meta': m
+    }
       
   def get_pagelet_meta(self):
     # self.type_string,
@@ -132,7 +141,9 @@ class ZNode(object):
       
   def render(self):
     self.fetch_data()
-    self.set_view_data_item('node_attribute', self.node_attribute)
+    node_attribute = self.get_node_attribute()
+    self.set_view_data_item('node_client_id', node_attribute['id'])
+    self.set_view_data_item('node_meta_json', node_attribute['meta'])
     renderer = self.get_renderer(template = self.template, view_data = self.view_data)
     return renderer.render()
     

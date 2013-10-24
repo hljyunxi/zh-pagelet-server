@@ -8,7 +8,7 @@ import json
 import uuid
 
 class ClientInfoMap(object):
-	info_map = {}
+	infor_map = {}
 	root_node_list = {}
 	inc_id = 0
 	# Create a unique prefix.
@@ -20,8 +20,8 @@ class ClientInfoMap(object):
 		return new_id
 
 	# Write out to page.
-	def get_info_map_json(self):
-		return json.dumps(self.info_map)
+	def get_infor_map_json(self):
+		return json.dumps(self.infor_map)
 
 	# Write out to page.
 	def get_root_list_json(self):
@@ -45,10 +45,11 @@ class ClientInfoMap(object):
 		else:
 			parent_id = parent_node
 
-		if parent_id in self.info_map.keys():
-			# 'constructorName, ClientId'
-			self.info_map[parent_id].append([child_node.get_constructor_name(), child_node.get_client_id()])
-		else:
-			self.info_map[parent_id] = [child_node.get_constructor_name(), child_node.get_client_id()]
+		if parent_id not in self.infor_map.keys():
+			self.infor_map[parent_id] = []
+
+		# self  .infor_map[parent_id].append({'id': child_node.get_client_id(), 'js': child_node.get_module_name()})
+		self.infor_map[parent_id].append({'id': child_node.get_client_id(), 'js': child_node.get_module_name(), 'css': child_node.get_css_path()})
+
 
 
