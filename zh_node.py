@@ -1,7 +1,5 @@
 # coding=utf-8
 
-# import webapp2
-# import jinja2
 import os
 import time, datetime
 import json
@@ -9,27 +7,27 @@ from zh_node_default_renderer import ZNodeDefaultRenderer
 
 #NOTE: Do we need provide a method to set template name at runtime?
 class ZNode(object):
-  template = ''
-  # eg. Seajs module path, this give info to client to load it's script, before create the node.
-  # the script and it's childs's script will be batch fetched at once.
-  # Should be assign by subclass.
-  constructor_name = ''
-  js_path = ''
-  css_path = ''
-  meta = {}
-  # End for assign.
-  client_id = ''
-  child_nodes = []
-  root_node_id = 'ROOT'
-  infor_map = None
-  context = None
-  is_root = False
-  
   def __init__(self, meta = {}, parent_node = None):
-    self.view_data = {}
-    # self.config = config 
-    self.meta = meta
+    super(ZNode, self).__init__()
+    self.template = ''
+    # eg. Seajs module path, this give info to client to load it's script, before create the node.
+    # the script and it's childs's script will be batch fetched at once.
+    # Should be assign by subclass.
+    self.js_path = ''
+    self.css_path = ''
+    self.meta = {}
+    # End for assign.
+    self.client_id = ''
+    self.child_nodes = []
+    self.root_node_id = 'ROOT'
+    self.infor_map = None
+    self.context = None
+    self.is_root = False
 
+    self.view_data = {} 
+    self.meta = meta # Merge all config options here.
+
+    # Here, rootNode is just for initialize purpers.
     if parent_node:
       self.root_node_id = parent_node.root_node_id
       self.set_infor_map(parent_node.infor_map)
@@ -58,9 +56,6 @@ class ZNode(object):
 
   def get_module_name(self):
     return self.js_path
-
-  def get_constructor_name(self):
-    return self.constructor_name
     
   #NOTE: Should set by ClientInfoMap.  
   def set_client_id(self, client_id):
