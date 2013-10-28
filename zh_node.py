@@ -16,6 +16,7 @@ class ZNode(object):
     self.js_path = ''
     self.css_path = ''
     self.meta = {}
+    self.config = {} # This won't be transfered duiring update.
     # End for assign.
     self.client_id = ''
     self.child_nodes = []
@@ -47,6 +48,9 @@ class ZNode(object):
         self.infor_map.add_relationship('ROOT', self)
 
       self.infor_map.add_tree_dependency(self.root_node_id, self.js_path)
+
+  def get_infor_map(self):
+    return self.infor_map
 
   def set_context(self, context):
     self.entity_context = context
@@ -102,14 +106,13 @@ class ZNode(object):
   #   return self.config[key]
   
   def get_node_attribute(self):
-    meta_data = self.meta
     # m = '&'.join(['{0}={1}'.format(k, str(meta_data[k]).replace('=', '○').replace('&', '⊕')) for k in meta_data ])
     # m = '&'.join(['{0}={1}'.format(k, str(meta_data[k]).replace('=', u'○').replace('&', u'⊕')) for k in meta_data ])
-    m = json.dumps(meta_data)
     
     return {
       'id': self.get_client_id(),
-      'meta': m
+      'meta': json.dumps(self.meta),
+      'config': json.dumps(self.config)
     }
       
   def get_pagelet_meta(self):
@@ -139,6 +142,7 @@ class ZNode(object):
     node_attribute = self.get_node_attribute()
     self.set_view_data_item('node_client_id', node_attribute['id'])
     self.set_view_data_item('node_meta_json', node_attribute['meta'])
+    self.set_view_data_item('node_config_json', node_attribute['config'])
     renderer = self.get_renderer(template = self.template, view_data = self.view_data)
     return renderer.render()
     
