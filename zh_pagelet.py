@@ -3,15 +3,25 @@ import os
 import json
 import zh_node
 
+class PAGELET_RENDER_TYPE(object):
+  UPDATING = 'updating'
+  DECORATION = 'decoration'
+  UN_RENDER = 'un_render'
+    
+class PAGELET_RENDER_POSITION(object):
+  INNER = 'inner'
+  APPEND = 'append'
+  BEFORE = 'before'
+  AFTER = 'after'
 
 class Pagelet(object):
-  @class_method
+  @classmethod
   def from_node_instance(cls, node_instance):
     return Pagelet(node_instance = node_instance)
 
-  @class_method
+  @classmethod
   def update_for_node(cls, node_client_id = '', node_module_name = ''):
-    return Pagelet(node_info = {})
+    return Pagelet(node_client_id = node_client_id, node_module_name = node_module_name)
 
   def __init__(self, node_instance = None, node_client_id = '', node_module_name = ''):
     self.znode = node_instance
@@ -19,7 +29,7 @@ class Pagelet(object):
     # no instance is passing means we just want pass some message or un-render
     if not self.znode:
       self.root_nodes = {
-        'ROOT': [{"id": node_client_id "js": node_module_name}]
+        'ROOT': [{"id": node_client_id, "js": node_module_name}]
       }
 
     self.html = '' # from render() of znode instance.
@@ -55,10 +65,10 @@ class Pagelet(object):
   def get_json_object(self):
     return {
       'html': self.znode.render if self.znode else '',
-      'root_nodes': self.znode.get_infor_map().get_root_list_json() if self.znode else self.root_nodes
+      'root_nodes': self.znode.get_infor_map().get_root_list_json() if self.znode else self.root_nodes,
       'infor_map': self.znode.get_infor_map().get_infor_map_json() if self.znode else {},
       'refer_node': self.refer_node,
-      'render_type' self.render_type,
+      'render_type': self.render_type,
       'render_position': self.render_position,
       'message': self.message
     }

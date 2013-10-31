@@ -8,11 +8,13 @@ import json
 import uuid
 
 class ClientInfoMap(object):
-	infor_map = {}
-	root_node_list = {}
-	inc_id = 0
-	# Create a unique prefix.
-	prefix = uuid.uuid1().hex[0:5]
+	def __init__(self):
+		super(ClientInfoMap, self).__init__()
+		self.infor_map = {}
+		self.root_node_list = {}
+		self.inc_id = 0
+		# Create a unique prefix.
+		self.prefix = uuid.uuid1().hex[0:5]
 
 	def generate_client_id(self):
 		new_id = self.prefix + '-' + str(self.inc_id)
@@ -49,7 +51,7 @@ class ClientInfoMap(object):
 			self.infor_map[parent_id] = []
 
 		# self  .infor_map[parent_id].append({'id': child_node.get_client_id(), 'js': child_node.get_module_name()})
-		self.infor_map[parent_id].append({'id': child_node.get_client_id(), 'js': child_node.get_module_name(), 'css': child_node.get_css_path()})
+		self.infor_map[parent_id].append({'id': child_node.get_client_id(), 'js': child_node.get_module_name(), 'css': child_node.get_css_path(), 'meta': child_node.meta})
 
 
 

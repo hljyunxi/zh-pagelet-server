@@ -13,28 +13,31 @@ class ZNode(object):
     # eg. Seajs module path, this give info to client to load it's script, before create the node.
     # the script and it's childs's script will be batch fetched at once.
     # Should be assign by subclass.
-    self.js_path = ''
-    self.css_path = ''
-    self.meta = {}
+    self.js_path = '' 
+    self.css_path = '' 
+    self.meta = {} 
     self.config = {} # This won't be transfered duiring update.
     # End for assign.
     self.client_id = ''
     self.child_nodes = []
     self.root_node_id = 'ROOT'
+    self.parent_node_id = None
     self.infor_map = None
     self.context = None
-    self.is_root = False
 
     self.view_data = {} 
     self.meta = meta # Merge all config options here.
 
+  def set_parent(self, parent_node):
     # Here, rootNode is just for initialize purpers.
+    assert parent_node
+
     if parent_node:
+      self.parent_node_id = parent_node.get_client_id()
       self.root_node_id = parent_node.root_node_id
       self.set_infor_map(parent_node.infor_map)
       self.set_context(parent_node.context)
-    else:
-      self.marked_as_root_node()
+      parent_node.add_child(self)
 
   def get_css_path(self):
     return self.css_path
@@ -43,7 +46,7 @@ class ZNode(object):
     self.infor_map = infor_map
     if not self.client_id:
       self.set_client_id(self.infor_map.generate_client_id())
-      if self.is_root:
+      if not self.parent_node_id:
         self.root_node_id = self.get_client_id()
         self.infor_map.add_relationship('ROOT', self)
 
@@ -54,9 +57,6 @@ class ZNode(object):
 
   def set_context(self, context):
     self.entity_context = context
-
-  def marked_as_root_node(self):
-    self.is_root = True
 
   def get_module_name(self):
     return self.js_path
@@ -138,10 +138,12 @@ class ZNode(object):
     return ZNodeDefaultRenderer(template, view_data)
       
   def render(self):
+    assert self.infor_map
+    
     self.fetch_data()
     node_attribute = self.get_node_attribute()
     self.set_view_data_item('node_client_id', node_attribute['id'])
-    self.set_view_data_item('node_meta_json', node_attribute['meta'])
+    # self.set_view_data_item('node_meta_json', node_attribute['meta'])
     self.set_view_data_item('node_config_json', node_attribute['config'])
     renderer = self.get_renderer(template = self.template, view_data = self.view_data)
     return renderer.render()
