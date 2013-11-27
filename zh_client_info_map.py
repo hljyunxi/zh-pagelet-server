@@ -11,7 +11,7 @@ class ClientInfoMap(object):
 	def __init__(self):
 		super(ClientInfoMap, self).__init__()
 		self.infor_map = {}
-		self.root_node_list = {}
+		self.dependency_tree = []
 		self.inc_id = 0
 		# Create a unique prefix.
 		self.prefix = uuid.uuid1().hex[0:5]
@@ -26,8 +26,8 @@ class ClientInfoMap(object):
 		return json.dumps(self.infor_map)
 
 	# Write out to page.
-	def get_root_list_json(self):
-		return json.dumps(self.root_node_list)
+	def get_dependency_tree_json(self):
+		return json.dumps(self.dependency_tree)
 
 	# def assign_unique_id_(self, new_node):
 	# 	pass
@@ -35,11 +35,8 @@ class ClientInfoMap(object):
 	# def add_root_node(self, root_node):
 	# 	self.root_node_list.append(root_node)
 
-	def add_tree_dependency(self, root_node_id, js_path):
-		if root_node_id in self.root_node_list.keys():
-			self.root_node_list[root_node_id].append(js_path)
-		else:
-			self.root_node_list[root_node_id] = [js_path];
+	def add_tree_dependency(self, js_path):
+		self.dependency_tree.append(js_path)
 
 	def add_relationship(self, parent_node = 'ROOT', child_node = None):
 		if parent_node != 'ROOT':

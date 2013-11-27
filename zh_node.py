@@ -4,6 +4,7 @@ import os
 import time, datetime
 import json
 from zh_node_default_renderer import ZNodeDefaultRenderer
+import zh_client_info_map
 
 #NOTE: Do we need provide a method to set template name at runtime?
 class ZNode(object):
@@ -16,64 +17,56 @@ class ZNode(object):
     self.js_path = '' 
     self.css_path = '' 
     self.meta = {} 
-    self.config = {} # This won't be transfered duiring update.
+    self.config = {} # This won't be transfered during update.
     # End for assign.
     self.client_id = ''
     self.child_nodes = []
-    self.root_node_id = 'ROOT'
     self.parent_node_id = None
     self.infor_map = None
-    self.context = None
+    self.is_root_node_ = False
 
     self.view_data = {} 
     self.meta = meta # Merge all config options here.
 
-  def set_parent(self, parent_node):
-    # Here, rootNode is just for initialize purpers.
-    assert parent_node
-
-    if parent_node:
-      self.parent_node_id = parent_node.get_client_id()
-      self.root_node_id = parent_node.root_node_id
-      self.set_infor_map(parent_node.infor_map)
-      self.set_context(parent_node.context)
-      parent_node.add_child(self)
-
   def get_css_path(self):
     return self.css_path
 
+  def is_root_node(self):
+    return self.is_root_node_
+
   def set_infor_map(self, infor_map):
     self.infor_map = infor_map
-    if not self.client_id:
-      self.set_client_id(self.infor_map.generate_client_id())
-      if not self.parent_node_id:
-        self.root_node_id = self.get_client_id()
-        self.infor_map.add_relationship('ROOT', self)
-
-      self.infor_map.add_tree_dependency(self.root_node_id, self.js_path)
+    self.infor_map.add_tree_dependency(self.js_path)
 
   def get_infor_map(self):
+    if not self.infor_map:
+      self.set_infor_map(zh_client_info_map.ClientInfoMap())
+      self.self.is_root_node_ = True
+
     return self.infor_map
 
-  def set_context(self, context):
-    self.entity_context = context
-
-  def get_module_name(self):
+  def get_js_module_name(self):
     return self.js_path
     
   #NOTE: Should set by ClientInfoMap.  
-  def set_client_id(self, client_id):
+  def set_client_id_(self, client_id):
     self.client_id = client_id
     
   def get_client_id(self):
+    if not self.client_id:
+      self.set_client_id_(self.get_infor_map().generate_client_id())
     return self.client_id
 
-  
   def add_child(self, child_node):
-    # We don't need a pointer to parent node.
-    #child_node.set_parent(self)
+    if child_node.is_root_node():
+      raise Exception('Can not add root node as child.')
+
+    child_node.set_infor_map(self.get_infor_map())
+
     self.infor_map.add_relationship(parent_node = self, child_node = child_node)
-    self.child_nodes.append(child_node)
+    # Why we want keep a child_nodes refference?
+    # TBD
+    # self.child_nodes.append(child_node)
     
   def get_view_data_item(self, key):
     if key in self.view_data.keys():
@@ -84,9 +77,6 @@ class ZNode(object):
 
   def set_view_data(self, data):
     self.view_data = data
-
-  def set_template(self, template):
-    self.template = template
       
   def fetch_data(self):
     #NOTE: Subclass will override self method.
@@ -106,9 +96,6 @@ class ZNode(object):
   #   return self.config[key]
   
   def get_node_attribute(self):
-    # m = '&'.join(['{0}={1}'.format(k, str(meta_data[k]).replace('=', '○').replace('&', '⊕')) for k in meta_data ])
-    # m = '&'.join(['{0}={1}'.format(k, str(meta_data[k]).replace('=', u'○').replace('&', u'⊕')) for k in meta_data ])
-    
     return {
       'id': self.get_client_id(),
       'meta': json.dumps(self.meta),
@@ -138,13 +125,14 @@ class ZNode(object):
     return ZNodeDefaultRenderer(template, view_data)
       
   def render(self):
-    assert self.infor_map
+    if self.is_root_node():
+      self.get_infor_map().add_relationship('ROOT', self)
     
     self.fetch_data()
     node_attribute = self.get_node_attribute()
     self.set_view_data_item('node_client_id', node_attribute['id'])
     # self.set_view_data_item('node_meta_json', node_attribute['meta'])
-    self.set_view_data_item('node_config_json', node_attribute['config'])
+    # self.set_view_data_item('node_config_json', node_attribute['config'])
     renderer = self.get_renderer(template = self.template, view_data = self.view_data)
     return renderer.render()
     
